@@ -21,20 +21,41 @@ test {
     useJUnitPlatform()
 }
 
+def buildLambdaPath = "${projectDir}/build_lambda"
+
 jar {
     manifest {
         attributes 'Main-Class': 'com.davidagood.cdkjava.ExampleHandler'
     }
+
+    destinationDir file(buildLambdaPath)
+
+    from compileJava
+    from processResources
+
+    // AWS Lambda seems to require the code to be in the lib directory
+    into('lib') {
+        from configurations.runtimeClasspath
+    }
+
 }
 
-// https://docs.gradle.org/current/userguide/working_with_files.html#sec:creating_uber_jar_example
-task uberJar(type: Jar) {
-    archiveClassifier = 'uber'
+// Based on https://github.com/xword/java-npm-gradle-integration-example
+// declare a dedicated scope for publishing the packaged JAR
+configurations {
+    lambdaResources
+}
 
-    from sourceSets.main.output
+configurations.default.extendsFrom(configurations.lambdaResources)
 
-    dependsOn configurations.runtimeClasspath
-    from {
-        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+// expose the artifact created by the packaging task
+artifacts {
+    lambdaResources(jar.archivePath) {
+        builtBy jar
+        type 'jar'
     }
+}
+
+clean {
+    delete buildLambdaPath
 }

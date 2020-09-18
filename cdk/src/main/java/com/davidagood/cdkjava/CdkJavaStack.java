@@ -10,6 +10,12 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.Runtime;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+import static java.util.Objects.isNull;
+
 public class CdkJavaStack extends Stack {
     public CdkJavaStack(final Construct parent, final String id) {
         this(parent, id, null);
@@ -23,12 +29,33 @@ public class CdkJavaStack extends Stack {
                 .sortKey(Attribute.builder().name("SK").type(AttributeType.STRING).build())
                 .build();
 
-        Code codeFromLocalPath = Code.fromAsset("/Users/davidgood/dev/cdk-java-gradle-multi-module/lambda/build/libs/lambda-uber.jar");
+        URI uri;
 
-        Function function = Function.Builder.create(this, "test-func-cdk")
-                .code(codeFromLocalPath)
+        try {
+            URL url = getClass().getResource("/liba");
+
+            if (isNull(url)) {
+                throw new RuntimeException("Executable JAR not found in classpath resources");
+            }
+
+            uri = url.toURI();
+
+            System.out.println("Full URI for classpath resource \"/lib\": " + uri);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        // We expect the URI to be in this format
+        // jar:file:/home/dgood/IdeaProjects/cdk-java-starter/lambda/build_lambda/lambda.jar!/lib
+        // Not sure of a better way to get the absolute path of the JAR
+        String lambdaExecutableJarPath = uri.toString().split("jar:file:")[1].split("!")[0];
+        System.out.println("Lambda executable JAR path: " + lambdaExecutableJarPath);
+
+        Function function = Function.Builder.create(this, "ExampleJavaLambda")
+                .code(Code.fromAsset(lambdaExecutableJarPath))
                 .handler("com.davidagood.cdkjava.ExampleHandler::handleRequest")
-                .runtime(Runtime.JAVA_8)
+                .runtime(Runtime.JAVA_11)
                 .build();
     }
+
 }
