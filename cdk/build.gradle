@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'https://repo.maven.apache.org/maven2'
+    }
+}
+
+application {
+    mainClassName = 'com.davidagood.cdkjava.CdkJavaApp'
+}
+
+dependencies {
+    implementation project(':lambda')
+    implementation 'software.amazon.awscdk:core:1.62.0'
+    implementation 'software.amazon.awscdk:dynamodb:1.62.0'
+    implementation 'software.amazon.awscdk:lambda:1.62.0'
+    testImplementation 'junit:junit:4.12'
+}
+
+group = 'com.davidagood'
+version = '0.1'
+sourceCompatibility = '1.8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
