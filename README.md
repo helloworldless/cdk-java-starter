@@ -10,5 +10,6 @@
 
 ## Todo
 
-1. Find a way to share output sources from `lambda` module 
-rather than using absolute path in `cdk` module' `CdkJavaStack`
+1. Current way of getting the lambda output jar is hacky. Investigate if we can get the path 
+ of output artifact from the lambda and pass it as an environment variable which is read in the CDK
+ code
