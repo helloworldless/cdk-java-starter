@@ -32,10 +32,11 @@ public class CdkJavaStack extends Stack {
         URI uri;
 
         try {
-            URL url = getClass().getResource("/liba");
+            URL url = getClass().getResource("/lib");
 
             if (isNull(url)) {
-                throw new RuntimeException("Executable JAR not found in classpath resources");
+                throw new LambdaDeploymentPackageNotFoundException("Lambda deployment package not found in classpath" +
+                        " resources; Expected to find \"/lib\"");
             }
 
             uri = url.toURI();
