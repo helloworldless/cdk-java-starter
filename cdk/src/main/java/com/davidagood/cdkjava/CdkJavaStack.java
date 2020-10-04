@@ -10,11 +10,7 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.Runtime;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-
-import static java.util.Objects.isNull;
+import java.nio.file.Path;
 
 public class CdkJavaStack extends Stack {
     public CdkJavaStack(final Construct parent, final String id) {
@@ -29,28 +25,14 @@ public class CdkJavaStack extends Stack {
                 .sortKey(Attribute.builder().name("SK").type(AttributeType.STRING).build())
                 .build();
 
-        URI uri;
+        String lambdaExecutableJarPath = System.getProperty("lambdaJarAbsolutePath");
 
-        try {
-            URL url = getClass().getResource("/lib");
-
-            if (isNull(url)) {
-                throw new LambdaDeploymentPackageNotFoundException("Lambda deployment package not found in classpath" +
-                        " resources; Expected to find \"/lib\"");
-            }
-
-            uri = url.toURI();
-
-            System.out.println("Full URI for classpath resource \"/lib\": " + uri);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+        if (!Path.of(lambdaExecutableJarPath).toFile().exists()) {
+            throw new LambdaDeploymentPackageNotFoundException("Lambda deployment package not at path="
+                    + lambdaExecutableJarPath);
+        } else {
+            System.out.println("Found lambda executable JAR at paht=" + lambdaExecutableJarPath);
         }
-
-        // We expect the URI to be in this format
-        // jar:file:/home/dgood/IdeaProjects/cdk-java-starter/lambda/build_lambda/lambda.jar!/lib
-        // Not sure of a better way to get the absolute path of the JAR
-        String lambdaExecutableJarPath = uri.toString().split("jar:file:")[1].split("!")[0];
-        System.out.println("Lambda executable JAR path: " + lambdaExecutableJarPath);
 
         Function function = Function.Builder.create(this, "ExampleJavaLambda")
                 .code(Code.fromAsset(lambdaExecutableJarPath))

@@ -10,9 +10,13 @@ repositories {
     }
 }
 
+group = 'com.davidagood'
+version = '1.0.0'
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
 application {
     mainClassName = 'com.davidagood.cdkjava.CdkJavaApp'
-    applicationDefaultJvmArgs = ['-Dgreeting.language=en', "-DlambdaJar=${project(':lambda').name}"] //"
 }
 
 dependencies {
@@ -23,9 +27,15 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-group = 'com.davidagood'
-version = '0.1'
-sourceCompatibility = '11'
+run {
+    project(':lambda').afterEvaluate {
+        def files = project(':lambda').tasks.findByName('jar').outputs.files
+        println "module=:lambda, task=jar has output files=${files.collect { it }}"
+        def firstFile = files[0]
+        println "Expecting first and only file to be executable JAR; path=${firstFile}"
+        systemProperty 'lambdaJarAbsolutePath', firstFile.path
+    }
+}
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
